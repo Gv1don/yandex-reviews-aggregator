@@ -1,0 +1,89 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rating-app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    networks:
+      - rating-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: rating-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./.docker/nginx.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - rating-network
+    depends_on:
+      - app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: rating-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    networks:
+      - rating-network
+    depends_on:
+      - app
+
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile.scraper
+    container_name: rating-scraper
+    restart: unless-stopped
+    ports:
+      - "3099:3099"
+    volumes:
+      - ./scraper.mjs:/app/scraper.mjs
+    networks:
+      - rating-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: rating-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: rating
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: root
+      MYSQL_USER: rating
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./.docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./.docker/mysql/init.sql:/etc/mysql/init.sql
+    command: --init-file=/etc/mysql/init.sql
+    networks:
+      - rating-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 10
+
+networks:
+  rating-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
