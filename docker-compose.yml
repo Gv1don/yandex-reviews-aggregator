@@ -72,8 +72,6 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./.docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-      - ./.docker/mysql/init.sql:/etc/mysql/init.sql
-    command: --init-file=/etc/mysql/init.sql
     networks:
       - rating-network
     healthcheck:
