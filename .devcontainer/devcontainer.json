@@ -3,6 +3,9 @@
     "dockerComposeFile": "../docker-compose.yml",
     "service": "app",
     "workspaceFolder": "/var/www",
+    "features": {
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+    },
     "postCreateCommands": [
         "cp -n .env.example .env || true",
         "composer install --no-interaction --prefer-dist",
