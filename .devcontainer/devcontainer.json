@@ -1,0 +1,25 @@
+{
+    "name": "Rating Service",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/var/www",
+    "postCreateCommands": [
+        "cp -n .env.example .env || true",
+        "composer install --no-interaction --prefer-dist",
+        "php artisan key:generate --force"
+    ],
+    "forwardPorts": [8000, 3000],
+    "portsAttributes": {
+        "8000": { "label": "Backend" },
+        "3000": { "label": "Frontend" }
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bmewburn.vscode-intelephense-client",
+                "onecentlin.laravel-blade",
+                "bradlc.vscode-tailwindcss"
+            ]
+        }
+    }
+}
